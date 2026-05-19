@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDelivery } from '../context/DeliveryContext';
 import { Delivery } from '../types';
 import { 
@@ -19,7 +19,9 @@ import {
   RefreshCw,
   Send,
   Navigation,
-  Compass
+  Compass,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import MobileMoneyModal from './MobileMoneyModal';
 import GameMap from './GameMap';
@@ -71,6 +73,30 @@ export default function GameSidebar() {
     const { outcome } = await deferredPrompt.userChoice;
     console.log(`[PWA Install] User choice: ${outcome}`);
     setDeferredPrompt(null);
+  };
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isAtTop, setIsAtTop] = useState(true);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    setIsAtTop(target.scrollTop < 80);
+  };
+
+  const handleToggleScroll = () => {
+    if (!scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+    if (isAtTop) {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth'
+      });
+    } else {
+      container.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
   };
 
   // Mode tabs: 'delivery_form' | 'tracking' | 'history' | 'ai_assistant'
@@ -215,7 +241,7 @@ Cliquez sur le lien pour ouvrir Google Maps et démarrer le GPS.`;
   };
 
   return (
-    <div className="h-full flex flex-col bg-slate-900 text-slate-100 font-sans border-r border-slate-800">
+    <div className="h-full flex flex-col bg-slate-900 text-slate-100 font-sans border-r border-slate-800 relative">
       
       {/* 1. Header (Aesthetic Senegal Flag styling + Bold layout) */}
       <div className="p-6 shrink-0 bg-slate-950 border-b border-slate-800 relative overflow-hidden">
@@ -313,7 +339,7 @@ Cliquez sur le lien pour ouvrir Google Maps et démarrer le GPS.`;
         <button
           id="toggle-map-radar-vis"
           onClick={() => setShowMap(!showMap)}
-          className={`mt-3.5 lg:hidden w-full py-2.5 px-3 rounded-xl text-[11px] font-black transition duration-200 flex items-center justify-center gap-2 border uppercase tracking-widest ${
+          className={`mt-3.5 md:hidden w-full py-2.5 px-3 rounded-xl text-[11px] font-black transition duration-200 flex items-center justify-center gap-2 border uppercase tracking-widest ${
             showMap
               ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/15'
               : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-850 hover:text-slate-300'
@@ -398,11 +424,15 @@ Cliquez sur le lien pour ouvrir Google Maps et démarrer le GPS.`;
       </div>
 
       {/* 4. Scrollable Dynamic Body */}
-      <div className="flex-1 overflow-y-auto p-5 space-y-5">
+      <div 
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto p-5 space-y-5"
+      >
         
         {/* Dynamic Map Visualizer Radar embedded within the single viewport */}
         {showMap && (
-          <div className="w-full lg:hidden shrink-0 h-[400px] mb-2 rounded-3xl overflow-hidden border border-slate-800 shadow-xl relative z-10">
+          <div className="w-full md:hidden shrink-0 h-[400px] mb-2 rounded-3xl overflow-hidden border border-slate-800 shadow-xl relative z-10">
             <GameMap />
           </div>
         )}
@@ -995,6 +1025,26 @@ Cliquez sur le lien pour ouvrir Google Maps et démarrer le GPS.`;
         )}
 
       </div>
+
+      {/* Floating Scroll Nav Button: Monter/Descendre (Up/Down) */}
+      <button
+        id="scroll-to-edge-btn"
+        onClick={handleToggleScroll}
+        className="absolute bottom-6 right-6 z-40 px-3.5 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-slate-950 font-black text-[11px] uppercase tracking-wider shadow-lg shadow-emerald-500/30 active:scale-95 transition flex items-center gap-1.5 duration-200 cursor-pointer"
+        title={isAtTop ? "Défiler vers le bas" : "Défiler vers le haut"}
+      >
+        {isAtTop ? (
+          <>
+            <span>Descendre</span>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-950 stroke-[3]" />
+          </>
+        ) : (
+          <>
+            <span>En Haut</span>
+            <ChevronUp className="w-3.5 h-3.5 text-slate-950 stroke-[3]" />
+          </>
+        )}
+      </button>
 
       {/* Embedded MobileMoney popup modal overlay */}
       <MobileMoneyModal
