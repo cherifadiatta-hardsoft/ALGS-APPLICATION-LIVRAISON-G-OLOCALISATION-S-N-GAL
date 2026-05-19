@@ -1,0 +1,10 @@
+{
+  "name": "ALGS Delivery",
+  "description": "Application de Livraison Géolocalisée Sénégal. Partagez instantanément votre position exacte avec les livreurs par WhatsApp et profitez du live tracking GPS et d'indications en Wolof.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
