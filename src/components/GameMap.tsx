@@ -328,7 +328,7 @@ export default function GameMap() {
       </div>
 
       {/* MAIN TRACKER SURFACE */}
-      <div className="relative z-10 flex-1 overflow-y-auto p-4 md:p-6 flex flex-col md:flex-row gap-6">
+      <div className="relative z-10 flex-1 overflow-y-auto p-4 lg:p-6 flex flex-col lg:flex-row gap-6">
         <AnimatePresence mode="wait">
           {activeTab === 'visualizer' ? (
             <motion.div 
@@ -491,7 +491,7 @@ export default function GameMap() {
         </AnimatePresence>
 
         {/* NATIVE PHONE SYSTEM NAVIGATION CARD */}
-        <div className="w-full md:w-[260px] flex-shrink-0 bg-slate-900 p-5 rounded-3xl border border-slate-850 flex flex-col justify-between space-y-5">
+        <div className="w-full lg:w-[260px] flex-shrink-0 bg-slate-900 p-5 rounded-3xl border border-slate-850 flex-col justify-between space-y-5 lg:flex hidden">
           <div>
             <div className="flex items-center gap-2 mb-3">
               <Smartphone className="w-4 h-4 text-emerald-400 shrink-0" />

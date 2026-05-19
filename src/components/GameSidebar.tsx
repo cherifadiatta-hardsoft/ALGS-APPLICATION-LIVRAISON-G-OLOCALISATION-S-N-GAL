@@ -22,6 +22,7 @@ import {
   Compass
 } from 'lucide-react';
 import MobileMoneyModal from './MobileMoneyModal';
+import GameMap from './GameMap';
 
 export default function GameSidebar() {
   const {
@@ -43,8 +44,38 @@ export default function GameSidebar() {
     setIsRealGPSEnabled
   } = useDelivery();
 
+  // PWA install trigger state
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isAppInstalled, setIsAppInstalled] = useState(false);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsAppInstalled(true);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`[PWA Install] User choice: ${outcome}`);
+    setDeferredPrompt(null);
+  };
+
   // Mode tabs: 'delivery_form' | 'tracking' | 'history' | 'ai_assistant'
   const [activeTab, setActiveTab] = useState<'delivery_form' | 'tracking' | 'history' | 'ai_assistant'>('delivery_form');
+  const [showMap, setShowMap] = useState(true);
 
   // Form states
   const [clientName, setClientName] = useState('');
@@ -229,6 +260,29 @@ Cliquez sur le lien pour ouvrir Google Maps et démarrer le GPS.`;
           </div>
         </div>
 
+        {/* PWA Promotion installation helper */}
+        {deferredPrompt && (
+          <div className="mt-4 p-3 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/25 rounded-2xl flex items-center justify-between gap-3 shadow-md">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-emerald-500/15 text-emerald-400 rounded-lg shrink-0">
+                <Smartphone className="w-4 h-4 text-emerald-400" />
+              </div>
+              <div>
+                <h4 className="text-xs font-extrabold text-white leading-tight">Installer l'application ALGS</h4>
+                <p className="text-[10px] text-slate-400 leading-tight">Ajouter raccourci écran d'accueil (sans Play Store)</p>
+              </div>
+            </div>
+            <button
+              id="pwa-install-banner-btn"
+              type="button"
+              onClick={handleInstallClick}
+              className="px-2.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-[10px] uppercase tracking-wider rounded-xl transition cursor-pointer shrink-0"
+            >
+              Installer 📲
+            </button>
+          </div>
+        )}
+
         {/* Côté client vs livreur switchers */}
         <div className="grid grid-cols-2 gap-2 mt-5 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800">
           <button
@@ -254,6 +308,21 @@ Cliquez sur le lien pour ouvrir Google Maps et démarrer le GPS.`;
             🛵 Chauffeur
           </button>
         </div>
+
+        {/* Toggleable Embedded Map visualizer */}
+        <button
+          id="toggle-map-radar-vis"
+          onClick={() => setShowMap(!showMap)}
+          className={`mt-3.5 lg:hidden w-full py-2.5 px-3 rounded-xl text-[11px] font-black transition duration-200 flex items-center justify-center gap-2 border uppercase tracking-widest ${
+            showMap
+              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/15'
+              : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-850 hover:text-slate-300'
+          }`}
+          title="Afficher ou masquer la carte tactique radar géolocalisée"
+        >
+          <Compass className={`w-3.5 h-3.5 ${showMap ? 'animate-spin' : ''}`} style={{ animationDuration: '6s' }} />
+          {showMap ? 'Masquer la Carte Radar 🗺️' : 'Afficher la Carte Radar 🗺️'}
+        </button>
       </div>
 
       {/* 2. Audio Vocal Options Indicator */}
@@ -330,6 +399,13 @@ Cliquez sur le lien pour ouvrir Google Maps et démarrer le GPS.`;
 
       {/* 4. Scrollable Dynamic Body */}
       <div className="flex-1 overflow-y-auto p-5 space-y-5">
+        
+        {/* Dynamic Map Visualizer Radar embedded within the single viewport */}
+        {showMap && (
+          <div className="w-full lg:hidden shrink-0 h-[400px] mb-2 rounded-3xl overflow-hidden border border-slate-800 shadow-xl relative z-10">
+            <GameMap />
+          </div>
+        )}
         
         {/* TAB 4.1 : CLIENT - NEW DELIVERY FORM */}
         {activeTab === 'delivery_form' && activeRole === 'client' && (
