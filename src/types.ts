@@ -14,6 +14,7 @@ export interface Delivery {
   createdAt: string;
   qrCodeToken: string;
   etaMinutes: number; // Simulated ETA for the live tracking
+  deliveryType?: 'moto' | 'voiture';
 }
 
 export interface WebhookLog {

@@ -21,7 +21,8 @@ interface DeliveryContextType {
     clientName: string,
     clientPhone: string,
     driverPhone: string,
-    paymentMethod: 'wave' | 'orange_money' | 'free_money' | 'cash'
+    paymentMethod: 'wave' | 'orange_money' | 'free_money' | 'cash',
+    deliveryType?: 'moto' | 'voiture'
   ) => Promise<Delivery>;
   updateDeliveryStatus: (
     id: string,
@@ -63,8 +64,12 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
       } else {
         setIsSyncError(true);
       }
-    } catch (err) {
-      console.error('Failed to fetch deliveries:', err);
+    } catch (err: any) {
+      if (err instanceof TypeError && err.message.includes('Failed to fetch')) {
+        console.warn('[ALGS Network] Offline sync. Retrying in 3s...');
+      } else {
+        console.error('Failed to fetch deliveries:', err);
+      }
       setIsSyncError(true);
       // Automatically retry in 3 seconds to recover on dynamic network reconnects
       setTimeout(() => {
@@ -81,7 +86,8 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
     clientName: string,
     clientPhone: string,
     driverPhone: string,
-    paymentMethod: 'wave' | 'orange_money' | 'free_money' | 'cash'
+    paymentMethod: 'wave' | 'orange_money' | 'free_money' | 'cash',
+    deliveryType?: 'moto' | 'voiture'
   ) => {
     try {
       const resp = await fetch('/api/deliveries', {
@@ -94,6 +100,7 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
           latitude: selectedLocation.lat,
           longitude: selectedLocation.lng,
           paymentMethod,
+          deliveryType: deliveryType || 'moto',
         }),
       });
 
@@ -106,7 +113,11 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
       await fetchDeliveries();
       setActiveDelivery(newDlv);
       return newDlv;
-    } catch (err) {
+    } catch (err: any) {
+      if (err instanceof TypeError && err.message.includes('Failed to fetch')) {
+        console.warn('[ALGS Network] Offline sync error during creation.');
+        throw new Error('Connexion réseau perdue. Veuillez vérifier votre connexion.');
+      }
       console.error('Create delivery error:', err);
       throw err;
     }
@@ -128,7 +139,11 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
       if (resp.ok) {
         await fetchDeliveries();
       }
-    } catch (err) {
+    } catch (err: any) {
+      if (err instanceof TypeError && err.message.includes('Failed to fetch')) {
+        console.warn('[ALGS Network] Offline sync error during update.');
+        return;
+      }
       console.error('Update delivery error:', err);
     }
   };
@@ -144,7 +159,11 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
         }
         await fetchDeliveries();
       }
-    } catch (err) {
+    } catch (err: any) {
+      if (err instanceof TypeError && err.message.includes('Failed to fetch')) {
+        console.warn('[ALGS Network] Offline sync error during deletion.');
+        return;
+      }
       console.error('Delete delivery error:', err);
     }
   };

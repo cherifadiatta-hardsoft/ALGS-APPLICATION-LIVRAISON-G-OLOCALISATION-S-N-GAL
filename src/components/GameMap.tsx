@@ -363,7 +363,9 @@ export default function GameMap() {
                   <div className="mt-2.5 bg-slate-900 border border-slate-800 px-3 py-1 rounded-xl text-[10px] font-bold text-slate-300 font-mono tracking-wider text-center max-w-[180px]">
                     {activeDelivery ? (
                       <>
-                        <span className="text-emerald-400 block uppercase font-extrabold mb-0.5">Scooter Livraison</span>
+                        <span className="text-emerald-400 block uppercase font-extrabold mb-0.5">
+                          {activeDelivery.deliveryType === 'voiture' ? 'Voiture Livraison 🚗' : 'Moto Livraison 🛵'}
+                        </span>
                         {scooterPos ? `${scooterPos.lat.toFixed(5)}, ${scooterPos.lng.toFixed(5)}` : "En attente du livreur"}
                       </>
                     ) : (

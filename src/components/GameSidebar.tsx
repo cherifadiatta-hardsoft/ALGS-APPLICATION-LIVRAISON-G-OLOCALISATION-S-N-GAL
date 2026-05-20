@@ -108,6 +108,7 @@ export default function GameSidebar() {
   const [clientPhone, setClientPhone] = useState('77');
   const [driverPhone, setDriverPhone] = useState('76');
   const [paymentMethod, setPaymentMethod] = useState<'wave' | 'orange_money' | 'free_money' | 'cash'>('cash');
+  const [deliveryType, setDeliveryType] = useState<'moto' | 'voiture'>('moto');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Payment popup state
@@ -131,7 +132,8 @@ export default function GameSidebar() {
         clientName,
         clientPhone,
         driverPhone,
-        paymentMethod
+        paymentMethod,
+        deliveryType
       );
 
       // Welcome audio clip
@@ -165,6 +167,7 @@ export default function GameSidebar() {
     const rawMessage = `Salam waaleykum! C'est ${activeDelivery.clientName}. Voici ma position exacte de livraison par ALGS Delivery (Sama Position) :
 📍 https://www.google.com/maps?q=${lat},${lng}
 
+🛵 Type de livraison: ${activeDelivery.deliveryType === 'voiture' ? '🚗 Voiture (Colis standard)' : '🏍️ Moto (Livraison rapide)'}
 🏡 Quartier: ${activeDelivery.neighborhood}
 💡 Indications: ${activeDelivery.landmarkGuide}
 🗣️ Wolof: ${activeDelivery.landmarkGuideWolof}
@@ -520,6 +523,37 @@ Cliquez sur le lien pour ouvrir Google Maps et démarrer le GPS.`;
                 </div>
               </div>
 
+              {/* Moyen de Transport (Moto vs Voiture) */}
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">
+                  Moyen de Transport
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryType('moto')}
+                    className={`py-3 px-4 rounded-xl border text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transition duration-200 cursor-pointer ${
+                      deliveryType === 'moto'
+                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                        : 'bg-slate-950 border-slate-800 text-slate-500 hover:text-slate-300'
+                    }`}
+                  >
+                    <span>🛵</span> Moto Livraison
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryType('voiture')}
+                    className={`py-3 px-4 rounded-xl border text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transition duration-200 cursor-pointer ${
+                      deliveryType === 'voiture'
+                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                        : 'bg-slate-950 border-slate-800 text-slate-500 hover:text-slate-300'
+                    }`}
+                  >
+                    <span>🚗</span> Voiture Colis
+                  </button>
+                </div>
+              </div>
+
               {/* Payment Mode */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest font-mono">
@@ -542,14 +576,14 @@ Cliquez sur le lien pour ouvrir Google Maps et démarrer le GPS.`;
                 id="create-order-btn"
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm uppercase tracking-wider rounded-xl transition duration-200 transform hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10"
+                className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition duration-200 transform hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10"
               >
                 {isSubmitting ? (
                   <>Création...</>
                 ) : (
                   <>
                     <ShareIcon />
-                    Partager ma position exact
+                    Partager pour {deliveryType === 'moto' ? 'Livraison Moto 🛵' : 'Colis Voiture 🚗'}
                   </>
                 )}
               </button>
@@ -573,18 +607,32 @@ Cliquez sur le lien pour ouvrir Google Maps et démarrer le GPS.`;
                     </span>
                   </div>
 
-                  <div>
-                    <p className="text-xs text-slate-500 font-medium uppercase font-mono tracking-widest">
-                      Destinataire Client
-                    </p>
-                    <h3 className="text-lg font-extrabold text-white mt-0.5">
-                      {activeDelivery.clientName}
-                    </h3>
-                    <p className="text-xs text-indigo-400 flex items-center gap-1 font-semibold mt-1">
-                      <MapPin className="w-3.5 h-3.5 shrink-0" />
-                      {activeDelivery.neighborhood}
-                    </p>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-xs text-slate-500 font-medium uppercase font-mono tracking-widest">
+                        Destinataire Client
+                      </p>
+                      <h3 className="text-lg font-extrabold text-white mt-0.5">
+                        {activeDelivery.clientName}
+                      </h3>
+                    </div>
+                    {/* TYPE OF VEHICLE BADGE */}
+                    <span className="text-[10px] font-bold uppercase bg-slate-900 border border-slate-800 text-slate-300 px-2.5 py-1.5 rounded-xl flex items-center gap-1 shrink-0 select-none">
+                      {activeDelivery.deliveryType === 'voiture' ? (
+                        <>
+                          <span>🚗</span> Voiture
+                        </>
+                      ) : (
+                        <>
+                          <span>🛵</span> Moto
+                        </>
+                      )}
+                    </span>
                   </div>
+                  <p className="text-xs text-indigo-400 flex items-center gap-1 font-semibold mt-1">
+                    <MapPin className="w-3.5 h-3.5 shrink-0" />
+                    {activeDelivery.neighborhood}
+                  </p>
 
                   {/* Coordinates Info */}
                   <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-3.5 space-y-2">
@@ -849,9 +897,14 @@ Cliquez sur le lien pour ouvrir Google Maps et démarrer le GPS.`;
                         <p className="text-xs text-slate-400 font-mono font-medium truncate max-w-[160px]">
                           Quartier: {dlv.neighborhood}
                         </p>
-                        <span className="inline-block text-[9px] font-mono bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded uppercase font-bold mt-1">
-                          STATUS: {dlv.status.toUpperCase()}
-                        </span>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <span className="inline-block text-[9px] font-mono bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded uppercase font-bold">
+                            STATUS: {dlv.status.toUpperCase()}
+                          </span>
+                          <span className="inline-block text-[9px] font-mono bg-slate-900 text-slate-400/80 px-1.5 py-0.5 rounded uppercase font-bold border border-slate-800">
+                            {dlv.deliveryType === 'voiture' ? '🚗 voiture' : '🛵 moto'}
+                          </span>
+                        </div>
                       </div>
                       
                       <div className="text-right shrink-0">
@@ -904,6 +957,9 @@ Cliquez sur le lien pour ouvrir Google Maps et démarrer le GPS.`;
                         <h4 className="font-bold text-sm text-slate-200 truncate">{dlv.clientName}</h4>
                         <span className={`text-[8px] px-1.5 py-0.2 rounded font-mono font-bold ${dlv.status === 'delivered' ? 'bg-emerald-500/15 text-emerald-400' : dlv.status === 'shipping' ? 'bg-amber-400/15 text-amber-400' : 'bg-slate-800 text-slate-400'}`}>
                           {dlv.status.toUpperCase()}
+                        </span>
+                        <span className="text-[8px] px-1.5 py-0.2 bg-slate-900 border border-slate-850 text-slate-400 rounded font-mono font-bold select-none">
+                          {dlv.deliveryType === 'voiture' ? '🚗 VOITURE' : '🛵 MOTO'}
                         </span>
                       </div>
                       <p className="text-xs text-slate-400 font-mono truncate">

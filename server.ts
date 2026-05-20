@@ -80,9 +80,15 @@ async function startServer() {
         paymentMethod TEXT,
         createdAt TEXT,
         qrCodeToken TEXT,
-        etaMinutes INTEGER
+        etaMinutes INTEGER,
+        deliveryType TEXT
       )
     `);
+    try {
+      db.exec("ALTER TABLE deliveries ADD COLUMN deliveryType TEXT DEFAULT 'moto'");
+    } catch (_) {
+      // Already has deliveryType column
+    }
     console.log("[ALGS DB] Native SQLite Database initialized successfully.");
   } catch (dbError) {
     console.warn("[ALGS DB] Native SQLite loading failed. Utilizing Failsafe Backup JSON Database...", dbError);
@@ -144,7 +150,7 @@ async function startServer() {
               const [
                 id, clientName, clientPhone, driverPhone, latitude, longitude,
                 neighborhood, landmarkGuide, landmarkGuideWolof, paymentMethod,
-                createdAt, qrCodeToken, etaMinutes
+                createdAt, qrCodeToken, etaMinutes, deliveryType
               ] = args;
 
               const newItem = {
@@ -152,7 +158,8 @@ async function startServer() {
                 latitude: parseFloat(latitude), longitude: parseFloat(longitude),
                 neighborhood, landmarkGuide, landmarkGuideWolof,
                 status: "pending", paymentStatus: "pending", paymentMethod,
-                createdAt, qrCodeToken, etaMinutes: parseInt(etaMinutes, 10) || 15
+                createdAt, qrCodeToken, etaMinutes: parseInt(etaMinutes, 10) || 15,
+                deliveryType: deliveryType || "moto"
               };
 
               self.items.push(newItem);
@@ -260,7 +267,7 @@ async function startServer() {
 
   // Create a delivery (with optional Gemini assistance)
   app.post("/api/deliveries", async (req, res) => {
-    const { clientName, clientPhone, driverPhone, latitude, longitude, paymentMethod } = req.body;
+    const { clientName, clientPhone, driverPhone, latitude, longitude, paymentMethod, deliveryType } = req.body;
 
     if (!clientName || !clientPhone || !driverPhone || !latitude || !longitude) {
       return res.status(400).json({ error: "Champs obligatoires manquants." });
@@ -328,8 +335,8 @@ async function startServer() {
 
     try {
       const insert = db.prepare(`
-        INSERT INTO deliveries (id, clientName, clientPhone, driverPhone, latitude, longitude, neighborhood, landmarkGuide, landmarkGuideWolof, status, paymentStatus, paymentMethod, createdAt, qrCodeToken, etaMinutes)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending', ?, ?, ?, ?)
+        INSERT INTO deliveries (id, clientName, clientPhone, driverPhone, latitude, longitude, neighborhood, landmarkGuide, landmarkGuideWolof, status, paymentStatus, paymentMethod, createdAt, qrCodeToken, etaMinutes, deliveryType)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending', ?, ?, ?, ?, ?)
       `);
 
       insert.run(
@@ -345,7 +352,8 @@ async function startServer() {
         paymentMethod || "cash",
         createdAt,
         qrCodeToken,
-        etaMinutes
+        etaMinutes,
+        deliveryType || "moto"
       );
 
       res.status(201).json({
@@ -363,7 +371,8 @@ async function startServer() {
         paymentMethod: paymentMethod || "cash",
         createdAt,
         qrCodeToken,
-        etaMinutes
+        etaMinutes,
+        deliveryType: deliveryType || "moto"
       });
     } catch (dbError: any) {
       console.error("DB Insert error:", dbError);
